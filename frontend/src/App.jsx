@@ -33,14 +33,8 @@ export default function App() {
 
   return (
     <Routes>
-      <Route
-        path="/setup"
-        element={needsSetup ? <Setup /> : <Navigate to="/login" replace />}
-      />
-      <Route
-        path="/login"
-        element={needsSetup ? <Navigate to="/setup" replace /> : <Login />}
-      />
+      <Route path="/setup" element={<Setup />} />
+      <Route path="/login" element={<Login />} />
 
       <Route
         path="/"

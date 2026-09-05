@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Setup from "./pages/Setup";
 import Dashboard from "./pages/Dashboard";
@@ -10,19 +11,47 @@ import Reports from "./pages/Reports";
 import AdminSettings from "./pages/AdminSettings";
 import AdminUsers from "./pages/AdminUsers";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
+import api from "./api/axios";
 
 export default function App() {
+  const [needsSetup, setNeedsSetup] = useState(null); // null = لسه بنتأكد
+
+  useEffect(() => {
+    api
+      .get("/auth/check-setup")
+      .then((res) => setNeedsSetup(res.data.needsSetup))
+      .catch(() => setNeedsSetup(false)); // لو فشل الطلب، سيب اليوزر يكمل عادي على Login
+  }, []);
+
+  if (needsSetup === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-muted">
+        جاري التحميل...
+      </div>
+    );
+  }
+
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/setup" element={<Setup />} />
+      <Route
+        path="/setup"
+        element={needsSetup ? <Setup /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/login"
+        element={needsSetup ? <Navigate to="/setup" replace /> : <Login />}
+      />
 
       <Route
         path="/"
         element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
+          needsSetup ? (
+            <Navigate to="/setup" replace />
+          ) : (
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          )
         }
       />
       <Route
